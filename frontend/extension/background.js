@@ -1,7 +1,3 @@
-// frontend/extension/background.js
-
-console.log("Background worker started");
-
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   console.log("Background received message:", msg);
 

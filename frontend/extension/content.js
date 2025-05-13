@@ -5,8 +5,8 @@ function getSentimentCategory(score) {
 }
 
 const categoryColors = {
-  Positivo: "#4caf50",
-  Neutral:  "#ffeb3b",
+  Positivo: "#009c3d",
+  Neutral:  "#009c3d",
   Negativo: "#f44336"
 };
 
@@ -242,6 +242,13 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
     noNegEx.textContent = "No hay opiniones negativas destacadas.";
     panel.appendChild(noNegEx);
   }
+
+  panel.appendChild(document.createElement("hr"));
+  const footer = document.createElement("p");
+  footer.style.fontSize = "12px";
+  footer.style.textAlign = "center";
+  footer.innerHTML = `Hecho con ❤️ y ☕ por <a href="https://www.linkedin.com/in/misooler/" target="_blank" style="text-decoration:none;color:#0073b1;">Miguel Soler</a>`;
+  panel.appendChild(footer);
 
   document.body.appendChild(panel);
 

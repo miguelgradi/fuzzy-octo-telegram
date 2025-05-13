@@ -1,11 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-  console.log("Popup loaded");
-
   chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
     const url = tabs[0].url;
     console.log("Popup → background", url);
-    chrome.runtime.sendMessage({type:"ANALYZE_REVIEWS", url}, response=>{
+    chrome.runtime.sendMessage({type:"ANALYZE_REVIEWS", url}, response => {
       console.log("Popup got response:", response);
     });
   });
