@@ -1,3 +1,5 @@
+console.log("Content script loaded on", window.location.href);
+
 const btn = document.createElement("button");
 btn.textContent = "Analyze Reviews";
 btn.style.position = "fixed";
@@ -8,6 +10,7 @@ document.body.appendChild(btn);
 
 btn.addEventListener("click", () => {
   const url = window.location.href;
+  console.log("Content → background:", msg);
   chrome.runtime.sendMessage(
     { type: "ANALYZE_REVIEWS", url },
     (response) => {

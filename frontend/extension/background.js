@@ -1,4 +1,6 @@
+console.log("Background worker started");
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  console.log("Background received message:", msg);
   if (msg.type === "ANALYZE_REVIEWS") {
     fetch(`http://localhost:8000/analyze`, {
       method: "POST",

@@ -1,6 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+  console.log("Popup loaded");
+
   chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { type: "ANALYZE_REVIEWS", url: tabs[0].url });
+    const url = tabs[0].url;
+    console.log("Popup → background", url);
+    chrome.runtime.sendMessage({type:"ANALYZE_REVIEWS", url}, response=>{
+      console.log("Popup got response:", response);
+    });
   });
 
   window.addEventListener("message", (event) => {
