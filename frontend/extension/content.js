@@ -1,8 +1,3 @@
-// content.js
-
-console.log("Content script loaded on", window.location.href);
-
-// Utilitario para categorizar sentimiento
 function getSentimentCategory(score) {
   if (score >= 0.7) return "Positivo";
   if (score >= 0.4) return "Neutral";
@@ -15,7 +10,6 @@ const categoryColors = {
   Negativo: "#f44336"
 };
 
-// 1) Botón “Analizar Opiniones”
 const btn = document.createElement("button");
 btn.textContent = "Analizar Opiniones";
 Object.assign(btn.style, {
@@ -31,7 +25,6 @@ Object.assign(btn.style, {
 });
 document.body.appendChild(btn);
 
-// Loader
 const loader = document.createElement("div");
 loader.id = "analysis-loader";
 loader.textContent = "Analizando opiniones…";
@@ -49,7 +42,6 @@ Object.assign(loader.style, {
 });
 document.body.appendChild(loader);
 
-// 2) Al hacer click → pedir el análisis
 btn.addEventListener("click", () => {
   btn.disabled = true;
   loader.style.display = "block";
@@ -73,12 +65,11 @@ btn.addEventListener("click", () => {
       aspect_sentiment: aspects
     } = response.data;
 
-    console.log("Content received data:", response.data);
+    // console.log("Content received data:", response.data);
     showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects);
   });
 });
 
-// 3) Construye y muestra el panel de análisis
 function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects) {
   if (document.getElementById("review-analysis-panel")) return;
 
@@ -101,7 +92,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
     lineHeight:   "1.4"
   });
 
-  // Botón de cerrar
   const closeBtn = document.createElement("button");
   closeBtn.textContent = "✕";
   Object.assign(closeBtn.style, {
@@ -116,7 +106,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
   closeBtn.onclick = () => panel.remove();
   panel.appendChild(closeBtn);
 
-  // Sentimiento general
   const avgScore = reviews.reduce((sum, r) => sum + r.sentiment_score, 0) / reviews.length;
   const overallCategory = getSentimentCategory(avgScore);
 
@@ -125,7 +114,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
   overallEl.style.color = categoryColors[overallCategory];
   panel.appendChild(overallEl);
 
-  // Leyenda de la puntuación
   const legend = document.createElement("p");
   legend.innerHTML = `
     La puntuación va de <strong>0.0</strong> (muy negativo) a <strong>1.0</strong> (muy positivo).<br>
@@ -137,10 +125,8 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
   legend.style.margin = "8px 0";
   panel.appendChild(legend);
 
-  // Espacio
   panel.appendChild(document.createElement("hr"));
 
-  // Aspectos positivos
   const prosTitle = document.createElement("h4");
   prosTitle.innerHTML = "<b>Aspectos positivos:</b>";
   panel.appendChild(prosTitle);
@@ -156,7 +142,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
 
   panel.appendChild(document.createElement("br"));
 
-  // Aspectos negativos
   const consTitle = document.createElement("h4");
   consTitle.innerHTML = "<b>Aspectos negativos:</b>";
   panel.appendChild(consTitle);
@@ -172,7 +157,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
 
   panel.appendChild(document.createElement("hr"));
 
-  // Sentimiento por aspecto
   const aspectTitle = document.createElement("h4");
   aspectTitle.innerHTML = "<b>Sentimiento por aspecto:</b>";
   panel.appendChild(aspectTitle);
@@ -200,7 +184,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
 
   panel.appendChild(document.createElement("hr"));
 
-  // Gráfico de línea
   const canvas = document.createElement("canvas");
   canvas.id = "sentimentChart";
   canvas.height = 180;
@@ -208,7 +191,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
 
   panel.appendChild(document.createElement("br"));
 
-  // Palabras clave
   const kwTitle = document.createElement("h4");
   kwTitle.innerHTML = "<b>Palabras clave:</b>";
   panel.appendChild(kwTitle);
@@ -231,12 +213,10 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
 
   panel.appendChild(document.createElement("hr"));
 
-  // Opiniones destacadas
   const examplesTitle = document.createElement("h4");
   examplesTitle.innerHTML = "<b>Opiniones destacadas:</b>";
   panel.appendChild(examplesTitle);
 
-  // Ejemplos positivos
   const posEx = reviews.filter(r => getSentimentCategory(r.sentiment_score) === "Positivo").slice(0,2);
   posEx.forEach(r => {
     const box = document.createElement("div");
@@ -247,7 +227,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
     panel.appendChild(box);
   });
 
-  // Ejemplos negativos o mensaje fallback
   const negEx = reviews.filter(r => getSentimentCategory(r.sentiment_score) === "Negativo").slice(0,2);
   if (negEx.length) {
     negEx.forEach(r => {
@@ -266,7 +245,6 @@ function showAnalysisPanel(reviews, keywords, prosSummary, consSummary, aspects)
 
   document.body.appendChild(panel);
 
-  // Render del gráfico
   const dates = reviews.map(r => r.date);
   const scores = reviews.map(r => r.sentiment_score);
 

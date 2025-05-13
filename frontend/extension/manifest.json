@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Review Sentiment Analyzer",
+  "name": "Analizador de Sentimiento de Reseñas",
   "version": "0.1.0",
-  "description": "Analyze Mercado Libre product reviews: sentiment graph, keyword cloud, CSV export",
+  "description": "Análisis de opiniones en Mercado Libre: sentimientos, palabras clave y más...",
   "permissions": [
     "storage",
     "activeTab",

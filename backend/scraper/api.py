@@ -47,9 +47,11 @@ async def scrape_endpoint(request: ScrapeRequest):
 @app.post("/analyze", response_model=Dict)
 async def analyze_endpoint(request: ScrapeRequest):
     """
-    Scrape + analyze:
+    Scrape & analyze:
     - Sentiment per review
     - Top keywords
+    - Pros & Cons summary
+    - Aspect-based sentiment breakdown
     """
     try:
         raw = await scrape_reviews(request.url)
