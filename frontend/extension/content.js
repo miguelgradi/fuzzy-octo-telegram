@@ -6,7 +6,7 @@ function getSentimentCategory(score) {
 
 const categoryColors = {
   Positivo: "#009c3d",
-  Neutral:  "#009c3d",
+  Neutral:  "#ffc502",
   Negativo: "#f44336"
 };
 
