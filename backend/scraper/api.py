@@ -30,7 +30,6 @@ async def scrape_endpoint(request: ScrapeRequest):
         reviews = await scrape_reviews(request.url)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    # Convierte dataclass Review a Pydantic model
     return [ReviewModel(**r.__dict__) for r in reviews]
 
 if __name__ == "__main__":
