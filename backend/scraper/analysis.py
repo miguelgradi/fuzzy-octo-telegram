@@ -1,50 +1,52 @@
+# backend/scraper/analysis.py
+
 """
 Module to analyze scraped Mercado Libre reviews:
-- Sentiment analysis
-- Keyword extraction
+- Sentiment analysis via Hugging Face
+- Keyword extraction via YAKE
 """
 
 from typing import List, Dict
 from transformers import pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
-from scrape_reviews import Review 
+import yake
 
-sentiment_analyzer = pipeline("sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment")
+from scrape_reviews import Review
 
-def analyze_sentiment(text: str) -> Dict:
-    """
-    Analyze sentiment of a single review text.
-    Returns a dict with label and score.
-    """
-    result = sentiment_analyzer(text)[0]
-    return {"sentiment_label": result["label"], "sentiment_score": result["score"]}
+sentiment_analyzer = pipeline(
+    "sentiment-analysis",
+    model="nlptown/bert-base-multilingual-uncased-sentiment"
+)
 
-def extract_keywords(texts: List[str], top_n: int = 10) -> List[str]:
-    """
-    Extract top_n keywords across all review texts using TF-IDF.
-    """
-    vectorizer = TfidfVectorizer(stop_words="spanish", ngram_range=(1,2))
-    tfidf_matrix = vectorizer.fit_transform(texts)
-    scores = tfidf_matrix.sum(axis=0).A1
-    terms = vectorizer.get_feature_names_out()
-    top_indices = scores.argsort()[::-1][:top_n]
-    return [terms[i] for i in top_indices]
+def analyze_sentiment(text: str) -> Dict[str, float]:
+    res = sentiment_analyzer(text, truncation=True)[0]
+    return {"sentiment_label": res["label"], "sentiment_score": res["score"]}
 
-def analyze_reviews(reviews: List[Review]) -> List[Dict]:
+kw_extractor = yake.KeywordExtractor(
+    lan="es",
+    n=2,         
+    top=10,  
+    features=None
+)
+
+def extract_keywords(texts: List[str]) -> List[str]:
     """
-    Given a list of Review objects, returns a list of dicts including:
-    date, rating, content, useful_count, sentiment_label, sentiment_score
+    Extract top keywords across all review texts using YAKE.
     """
+    joined = " ".join(texts)
+    keywords_scores = kw_extractor.extract_keywords(joined)
+    return [kw for kw, score in keywords_scores]
+
+def analyze_reviews(reviews: List[Review]) -> Dict:
     texts = [r.content for r in reviews]
     keywords = extract_keywords(texts)
-    analyzed = []
+    detailed = []
     for r in reviews:
-        sentiment = analyze_sentiment(r.content)
-        analyzed.append({
+        sent = analyze_sentiment(r.content)
+        detailed.append({
             "date": r.date,
             "rating": r.rating,
             "content": r.content,
             "useful_count": r.useful_count,
-            **sentiment,
+            **sent
         })
-    return {"reviews": analyzed, "top_keywords": keywords}
+    return {"reviews": detailed, "top_keywords": keywords}

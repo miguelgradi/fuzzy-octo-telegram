@@ -1,7 +1,8 @@
+from analysis import analyze_reviews
 from fastapi import FastAPI, HTTPException
+from typing import Dict
 from pydantic import BaseModel
 from typing import List
-from analysis import analyze_reviews
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -46,16 +47,16 @@ async def scrape_endpoint(request: ScrapeRequest):
 @app.post("/analyze", response_model=Dict)
 async def analyze_endpoint(request: ScrapeRequest):
     """
-    POST /analyze
-    Body: { "url": "..." }
-    Scrapes reviews and returns sentiment  top keywords.
+    Scrape + analyze:
+    - Sentiment per review
+    - Top keywords
     """
     try:
-        raw_reviews = await scrape_reviews(request.url)
-        analysis = analyze_reviews(raw_reviews)
+        raw = await scrape_reviews(request.url)
+        result = analyze_reviews(raw)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    return analysis
+    return result
 
 if __name__ == "__main__":
     import uvicorn
