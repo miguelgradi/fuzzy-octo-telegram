@@ -10,7 +10,6 @@ from typing import List
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
-# CSS selector constants
 REVIEW_ARTICLE_SELECTOR = 'article[data-testid="comment-component"]'
 DATE_SELECTOR = 'span.ui-review-capability-comments__comment__date'
 CONTENT_SELECTOR = 'p[data-testid="comment-content-component"]'
@@ -73,19 +72,15 @@ def parse_reviews(html: str) -> List[Review]:
     reviews: List[Review] = []
 
     for elem in elements:
-        # Extract date
         date_el = elem.select_one(DATE_SELECTOR)
         date_text = date_el.get_text(strip=True) if date_el else ''
 
-        # Extract review content
         content_el = elem.select_one(CONTENT_SELECTOR)
         content_text = content_el.get_text(strip=True) if content_el else ''
 
-        # Count full stars for rating
         stars = elem.select(FULL_STAR_SELECTOR)
         rating = len(stars)
 
-        # Extract "useful" count
         useful_el = elem.select_one(USEFUL_BUTTON_TEXT_SELECTOR)
         useful_text = useful_el.get_text(strip=True) if useful_el else '0'
         useful_count = int(useful_text) if useful_text.isdigit() else 0

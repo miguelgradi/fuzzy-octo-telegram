@@ -7,15 +7,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     body: JSON.stringify({ url: msg.url })
   })
     .then(res => {
-      console.log("Background: fetch status", res.status);
+      // console.log("Background: fetch status", res.status);
       return res.json();
     })
     .then(data => {
-      console.log("Background: analyze data", data);
+      // console.log("Background: analyze data", data);
       sendResponse({ success: true, data });
     })
     .catch(err => {
-      console.error("Background: fetch error", err);
+      // console.error("Background: fetch error", err);
       sendResponse({ success: false, error: err.message });
     });
 

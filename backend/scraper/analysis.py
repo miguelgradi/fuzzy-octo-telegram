@@ -15,22 +15,18 @@ import yake
 
 from scrape_reviews import Review
 
-# 1) Sentiment pipeline
 sentiment_analyzer = pipeline(
     "sentiment-analysis",
     model="nlptown/bert-base-multilingual-uncased-sentiment"
 )
 
-# 2) Summarization pipeline
 summarizer = pipeline(
     "summarization",
     model="facebook/bart-large-cnn"
 )
 
-# 3) YAKE keyword extractor
 kw_extractor = yake.KeywordExtractor(lan="es", n=2, top=10, features=None)
 
-# 4) Aspect keywords
 ASPECT_KEYWORDS = {
     "Shipping":  ["envío", "shipping", "ship"],
     "Quality":   ["calidad", "quality"],
@@ -61,10 +57,6 @@ def summarize_texts(texts: List[str], max_len=60, min_len=20) -> str:
     return summarizer(chunk, max_length=max_len, min_length=min_len, do_sample=False)[0]["summary_text"]
 
 def aspect_sentiment(detailed_reviews: List[Dict]) -> Dict[str, Dict[str, int]]:
-    """
-    Recibe la lista de reviews ya convertidas a dict, cada uno con 'content' y 'sentiment_score'.
-    Retorna conteos por aspecto.
-    """
     result: Dict[str, Dict[str, int]] = {}
     for aspect, keywords in ASPECT_KEYWORDS.items():
         hits = [
@@ -83,7 +75,6 @@ def aspect_sentiment(detailed_reviews: List[Dict]) -> Dict[str, Dict[str, int]]:
     return result
 
 def analyze_reviews(reviews: List[Review]) -> Dict:
-    # 1) Mapeo inicial de dataclasses Review a dicts con sentimiento
     detailed: List[Dict] = []
     for r in reviews:
         sent = analyze_sentiment(r.content)
@@ -98,13 +89,11 @@ def analyze_reviews(reviews: List[Review]) -> Dict:
     texts = [r["content"] for r in detailed]
     keywords = extract_keywords(texts)
 
-    # 2) Pros & Cons summaries
     positives = [r["content"] for r in detailed if get_sentiment_category(r["sentiment_score"]) == "Positive"]
     negatives = [r["content"] for r in detailed if get_sentiment_category(r["sentiment_score"]) == "Negative"]
     pros_summary = summarize_texts(positives)
     cons_summary = summarize_texts(negatives)
 
-    # 3) Aspect-based sentiment
     aspects = aspect_sentiment(detailed)
 
     return {
