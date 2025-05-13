@@ -9,3 +9,5 @@ requests==2.32.3
 soupsieve==2.7
 typing_extensions==4.13.2
 urllib3==2.4.0
+fastapi==0.100.0
+uvicorn==0.23.2
