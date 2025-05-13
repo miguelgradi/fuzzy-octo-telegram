@@ -16,9 +16,12 @@ btn.addEventListener("click", () => {
   chrome.runtime.sendMessage(message, (response) => {
     if (response.success) {
       console.log("Content received data:", response.data);
-      window.postMessage({ type: "REVIEWS_DATA", payload: response.data }, "*");
+
+      alert(JSON.stringify(response.data, null, 2));
+
     } else {
       console.error("Analysis error:", response.error);
+      alert("Error analyzing reviews: " + response.error);
     }
   });
 });
