@@ -9,7 +9,7 @@
     "scripting"
   ],
   "host_permissions": [
-    "https://www.mercadolibre.com.co/*",
+    "https://articulo.mercadolibre.com.co/*",
     "http://localhost:8000/*"
   ],
   "action": {
@@ -25,7 +25,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.mercadolibre.com.co/*"],
+      "matches": ["articulo.mercadolibre.com.co/*"],
       "js": ["content.js"]
     }
   ]
