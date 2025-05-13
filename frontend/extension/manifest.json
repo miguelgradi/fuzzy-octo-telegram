@@ -10,6 +10,7 @@
   ],
   "host_permissions": [
     "https://articulo.mercadolibre.com.co/*",
+    "https://www.mercadolibre.com.co/*",
     "http://localhost:8000/*"
   ],
   "action": {
@@ -25,7 +26,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://articulo.mercadolibre.com.co/*"],
+      "matches": [
+        "https://articulo.mercadolibre.com.co/*",
+        "https://www.mercadolibre.com.co/*"
+      ],
       "js": [
         "chart.umd.min.js",
         "content.js"
