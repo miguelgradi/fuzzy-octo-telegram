@@ -2,12 +2,21 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from scrape_reviews import scrape_reviews
 
 app = FastAPI(
-    title="MarketReview Scraper",
+    title="Meli Review Scrapper",
     version="0.1.0",
-    description="API to scrape Mercado Libre product reviews"
+    description="API to scrape Mercado Libre product reviews and analize them"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class ScrapeRequest(BaseModel):
