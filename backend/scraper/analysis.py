@@ -6,6 +6,9 @@ Module to analyze scraped Mercado Libre reviews:
 - Keyword extraction via YAKE
 """
 
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 from typing import List, Dict
 from transformers import pipeline
 import yake
