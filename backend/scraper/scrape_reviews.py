@@ -1,16 +1,20 @@
 """
-Module to scrape product reviews from Mercado Libre pages.
+Module to scrape Mercado Libre product reviews,
+including clicking "Mostrar todas las opiniones" to load the popup.
 """
 
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import List
+from typing import List, Set, Tuple
 
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 
-REVIEW_ARTICLE_SELECTOR = 'article[data-testid="comment-component"]'
+REVIEW_SELECTOR = 'article[data-testid="comment-component"]'
+SEE_MORE_BUTTON = 'button[data-testid="see-more"]'
+POPUP_CONTAINER = 'div.ui-review-capability__mobile__comments'
+
 DATE_SELECTOR = 'span.ui-review-capability-comments__comment__date'
 CONTENT_SELECTOR = 'p[data-testid="comment-content-component"]'
 FULL_STAR_SELECTOR = (
@@ -25,98 +29,113 @@ USEFUL_BUTTON_TEXT_SELECTOR = (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class Review:
-    """Data class representing a product review."""
+    """
+    Representation of a product review with its relevant attributes.
+    
+    Attributes:
+        date: When the review was posted
+        rating: Star rating (1-5)
+        content: Text content of the review
+        useful_count: Number of users who found this review helpful
+    """
     date: str
     rating: int
     content: str
     useful_count: int
 
-
 async def fetch_page_content(url: str, timeout: int = 60000) -> str:
     """
-    Fetch the rendered HTML content of the given URL using Playwright.
-
+    Renders the product page and extracts HTML after loading reviews.
+    
     Args:
-        url: The product page URL to navigate to.
-        timeout: Maximum navigation time in milliseconds.
-
+        url: Mercado Libre product URL to scrape
+        timeout: Maximum time in ms to wait for page load
+        
     Returns:
-        The page's fully rendered HTML content.
+        Full HTML content of the page after dynamic content is loaded
+        
+    Notes:
+        - Uses Playwright to handle JavaScript rendering
+        - Attempts to click the "see more reviews" button if available
+        - Waits for review popup to fully load before extraction
     """
-    async with async_playwright() as playwright:
-        browser = await playwright.chromium.launch(headless=True)
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
         try:
+            logger.info("Navigating to %s", url)
             await page.goto(url, timeout=timeout)
-            html = await page.content()
+
+            try:
+                await page.click(SEE_MORE_BUTTON, timeout=5000)
+                await page.wait_for_selector(POPUP_CONTAINER, timeout=5000)
+            except PlaywrightTimeout:
+                logger.info("More reviews button not found or timed out")
+
+            await page.wait_for_timeout(1000)
+            return await page.content()
+
         finally:
             await browser.close()
-    return html
 
 
 def parse_reviews(html: str) -> List[Review]:
     """
-    Parse review elements from HTML and convert them into Review objects.
-
+    Extracts review data from the rendered HTML content.
+    
     Args:
-        html: The HTML content as a string.
-
+        html: Full HTML content of the page with reviews
+        
     Returns:
-        A list of Review instances.
+        List of unique Review objects extracted from the page
+        
+    Notes:
+        - Uses BeautifulSoup for HTML parsing
+        - Deduplicates reviews based on date and content
+        - Handles missing elements gracefully
     """
     soup = BeautifulSoup(html, 'html.parser')
-    elements = soup.select(REVIEW_ARTICLE_SELECTOR)
+    review_elements = soup.select(REVIEW_SELECTOR)
+
+    seen: Set[Tuple[str, str]] = set()
     reviews: List[Review] = []
 
-    for elem in elements:
-        date_el = elem.select_one(DATE_SELECTOR)
-        date_text = date_el.get_text(strip=True) if date_el else ''
-
-        content_el = elem.select_one(CONTENT_SELECTOR)
-        content_text = content_el.get_text(strip=True) if content_el else ''
-
-        stars = elem.select(FULL_STAR_SELECTOR)
+    for element in review_elements:
+        date = element.select_one(DATE_SELECTOR).get_text(strip=True) if element.select_one(DATE_SELECTOR) else ""
+        content = element.select_one(CONTENT_SELECTOR).get_text(strip=True) if element.select_one(CONTENT_SELECTOR) else ""
+        stars = element.select(FULL_STAR_SELECTOR)
         rating = len(stars)
-
-        useful_el = elem.select_one(USEFUL_BUTTON_TEXT_SELECTOR)
-        useful_text = useful_el.get_text(strip=True) if useful_el else '0'
+        
+        useful_text = element.select_one(USEFUL_BUTTON_TEXT_SELECTOR).get_text(strip=True) if element.select_one(USEFUL_BUTTON_TEXT_SELECTOR) else "0"
         useful_count = int(useful_text) if useful_text.isdigit() else 0
 
-        reviews.append(Review(
-            date=date_text,
-            rating=rating,
-            content=content_text,
-            useful_count=useful_count
-        ))
+        review_key = (date, content)
+        if review_key in seen:
+            continue
+        seen.add(review_key)
 
+        reviews.append(Review(date=date, rating=rating, content=content, useful_count=useful_count))
+
+    logger.info("Parsed %d unique reviews", len(reviews))
     return reviews
 
 
 async def scrape_reviews(url: str) -> List[Review]:
     """
-    Orchestrates fetching and parsing of reviews for a given URL.
-
+    Main entry point for the scraping process.
+    
     Args:
-        url: The Mercado Libre product page URL.
-
+        url: Mercado Libre product URL to scrape
+        
     Returns:
-        A list of Review objects.
+        List of unique reviews from the product page
+        
+    Notes:
+        - Orchestrates the full scraping pipeline
+        - Handles the asynchronous workflow
     """
     logger.info("Starting scrape for %s", url)
     html = await fetch_page_content(url)
     return parse_reviews(html)
-
-
-def main():
-    """Main entry point."""
-    test_url = "https://www.mercadolibre.com.co/xiaomi-redmi-note-14-pro-5g-negro-256gb-8ram-200mpx/p/MCO45748930?pdp_filters=deal%3AMCO779366-1#polycard_client=homes-korribanSearchPromotions&searchVariation=MCO45748930&wid=MCO2808701988&position=4&search_layout=grid&type=product&tracking_id=652a53a4-89ad-4d5c-a6b6-4bc7b5017005&sid=search&c_id=/home/promotions-recommendations/element&c_uid=0faf7082-ce62-49c3-b660-82144f9b9a80"
-    reviews = asyncio.run(scrape_reviews(test_url))
-    for review in reviews:
-        logger.info(review)
-
-
-if __name__ == "__main__":
-    main()
