@@ -189,11 +189,29 @@ for aspect,kws in ASPECT_KEYWORDS.items():
 
 **YAKE**: extrae términos relevantes evitando stop-words.
 
+## Configuración del servidor
+
+Por defecto el servidor se ejecuta en localhost:8000. Para cambiar el host o puerto, edita el comando de arranque en api.py o usa variables de entorno:
+
+```bash
+# Con uvicorn directamente:
+uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+
+# O exporta antes:
+export API_HOST=mi-dominio.com
+export API_PORT=8080
+uvicorn api:app --host $API_HOST --port $API_PORT --reload
+```
+
 ![Popup](assets/image-1.png)
 
 ## 📜 Licencia
 
 Este proyecto está bajo la MIT License.
+
+## 🤝 Contribuciones
+
+¡Bienvenido! Abre un issue o un pull request para sugerir mejoras.
 
 ## ❤️☕ Créditos
 
